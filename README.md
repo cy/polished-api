@@ -1,6 +1,6 @@
 polished-api
 ============
-https://polished-api.herokuapp.com
+https://polished-api.herokuapp.com/manicures
 
 Prepared for chat with the Women in Technology meetup group http://www.meetup.com/witties
 
