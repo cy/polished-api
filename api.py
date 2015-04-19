@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, make_response, abort
+from flask import Flask, jsonify, make_response, abort, request
 
 app = Flask(__name__)
 manicures = [
@@ -39,7 +39,16 @@ def get_manicure(manicure_id):
 
 @app.route('/manicures', methods=['POST'])
 def create_manicure():
-    return jsonify({'error': 'method unimplemented' })
+    if not request.json or not 'name' in request.json:
+        abort(400)
+    manicure = {
+                'id': manicures[-1]['id'] + 1,
+                'name': request.json['name'],
+                'polishes': request.json.get('polishes', []),
+                'photo': request.json.get('photo', '')
+                }
+    manicures.append(manicure)
+    return jsonify({'manicure': manicure}), 201
 
 
 @app.route('/manicures', methods=['PUT'])
