@@ -66,10 +66,14 @@ def update_manicure(manicure_id):
     abort(400)
 
 
-@app.route('/manicures', methods=['DELETE'])
-def delete_manicure():
-    return jsonify({'error': 'method unimplemented' })
+@app.route('/manicures/<int:manicure_id>', methods=['DELETE'])
+def delete_manicure(manicure_id):
+    for m in manicures:
+        if m['id'] == manicure_id:
+            manicures.remove(m)
+            return jsonify({ 'result': 'deleted' })
 
+    abort(400)
 
 @app.errorhandler(404)
 def not_found(error):
