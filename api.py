@@ -1,7 +1,13 @@
 import pdb
-from flask import Flask, jsonify, make_response, abort, request
+from flask import Flask, jsonify, Response, abort, request, make_response
+import json
+from functools import wraps
+import dicttoxml
+import xml.dom.minidom as minidom
+
 
 app = Flask(__name__)
+
 manicures = [
         {
             'id': 1,
@@ -20,25 +26,41 @@ manicures = [
         }
     ]
 
-@app.route('/')
-def hello_word():
-    return "hello world!"
+def select_response_format(func):
+    """
+        Decorator that responds with either XML or JSON (default) depending on Accept header.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        data = func(*args, **kwargs)
+        mimetype = request.headers.get('Accept', '*/*')
+        if "xml" in mimetype:
+            data = dicttoxml.dicttoxml(data, attr_type=False, root=False)
+        else:
+            data = json.dumps(data)
+            mimetype = "application/json"
+
+        return Response(data, mimetype=mimetype)
+    return wrapper
 
 
 @app.route('/manicures', methods=['GET'])
+@select_response_format
 def get_manicures():
-    return jsonify({ 'manicures': manicures })
+    return {'manicures': manicures }
 
 
 @app.route('/manicures/<int:manicure_id>', methods=['GET'])
+@select_response_format
 def get_manicure(manicure_id):
     for m in manicures:
         if m['id'] == manicure_id:
-            return jsonify({ 'manicure': m })
+            return { 'manicure': m }
     abort(404)
 
 
 @app.route('/manicures', methods=['POST'])
+@select_response_format
 def create_manicure():
     #pdb.set_trace()
     if not request.json or not 'name' in request.json:
@@ -51,29 +73,32 @@ def create_manicure():
                 }
     manicures.append(manicure)
     print manicures
-    return jsonify({'manicure': manicure}), 201
+    return {'manicure': manicure}
 
 
 @app.route('/manicures/<int:manicure_id>', methods=['PUT'])
+@select_response_format
 def update_manicure(manicure_id):
     for m in manicures:
         if m['id'] == manicure_id:
             m['name'] = request.json.get('name', m['name'])
             m['polishes'] = request.json.get('polishes', m['polishes'])
             m['photo'] = request.json.get('photo', m['photo'])
-            return jsonify({ 'manicure': m })
+            return { 'manicure': m }
 
     abort(400)
 
 
 @app.route('/manicures/<int:manicure_id>', methods=['DELETE'])
+@select_response_format
 def delete_manicure(manicure_id):
     for m in manicures:
         if m['id'] == manicure_id:
             manicures.remove(m)
-            return jsonify({ 'result': 'deleted' })
+            return { 'result': 'deleted' }
 
     abort(400)
+
 
 @app.errorhandler(404)
 def not_found(error):
