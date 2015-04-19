@@ -1,3 +1,4 @@
+import pdb
 from flask import Flask, jsonify, make_response, abort, request
 
 app = Flask(__name__)
@@ -39,6 +40,7 @@ def get_manicure(manicure_id):
 
 @app.route('/manicures', methods=['POST'])
 def create_manicure():
+    #pdb.set_trace()
     if not request.json or not 'name' in request.json:
         abort(400)
     manicure = {
@@ -48,12 +50,20 @@ def create_manicure():
                 'photo': request.json.get('photo', '')
                 }
     manicures.append(manicure)
+    print manicures
     return jsonify({'manicure': manicure}), 201
 
 
-@app.route('/manicures', methods=['PUT'])
-def update_manicure():
-    return jsonify({'error': 'method unimplemented' })
+@app.route('/manicures/<int:manicure_id>', methods=['PUT'])
+def update_manicure(manicure_id):
+    for m in manicures:
+        if m['id'] == manicure_id:
+            m['name'] = request.json.get('name', m['name'])
+            m['polishes'] = request.json.get('polishes', m['polishes'])
+            m['photo'] = request.json.get('photo', m['photo'])
+            return jsonify({ 'manicure': m })
+
+    abort(400)
 
 
 @app.route('/manicures', methods=['DELETE'])
