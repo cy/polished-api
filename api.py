@@ -1,12 +1,15 @@
 import os
 from flask import Flask, jsonify, Response, abort, request, make_response
+
 import json
 from functools import wraps
 import dicttoxml
 import xml.dom.minidom as minidom
 
+from flask.ext.cors import cross_origin, CORS
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/manicures/*": {"origins": "*"}})
 
 manicures = [
         {
@@ -45,12 +48,14 @@ def select_response_format(func):
 
 
 @app.route('/manicures', methods=['GET'])
+@cross_origin()
 @select_response_format
 def get_manicures():
     return {'manicures': manicures }
 
 
 @app.route('/manicures/<int:manicure_id>', methods=['GET'])
+@cross_origin()
 @select_response_format
 def get_manicure(manicure_id):
     for m in manicures:
